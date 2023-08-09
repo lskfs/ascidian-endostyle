@@ -28,7 +28,7 @@ Rscript single-cell-seurat-MT-211101.R \
 -r 1.0 -c 0 -C 5000 -f 300 -F 1200 -d 15 -t 10 -m 40 -D 0.075
 
 # integrate three filited single cell datasets
-Rscript integration.sc.SCT.R \
+Rscript integration.singlecell.SCT.R \
 	-d path \
 	-b Sc-mito30.45.40-inte \
 	-o $cwd/220118-Sc-mito30.45.40/ \
