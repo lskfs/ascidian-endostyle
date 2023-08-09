@@ -1,6 +1,6 @@
 ########
 #
-#    integration.scdata.R
+#    integration.singlecell.SCT.R
 #    Reference: https://satijalab.org/seurat/articles/integration_introduction.html
 #
 #    1. Load two or more single-cell-rna-seq datasets(filtered_bc_matrix);
