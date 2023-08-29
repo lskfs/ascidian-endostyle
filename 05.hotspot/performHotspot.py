@@ -3,14 +3,10 @@ import hotspot
 
 import numpy as np
 import mplscience
-import matplotlib
 import matplotlib.pyplot as plt
-import seaborn as sns
-import sys
 import pickle
 
-sys.path.append('/dellfsqd2/ST_OCEAN/USER/hankai/Project/10.smed/code/site-packages')
-from WBRtools import get_cmap
+from .util import get_cmap
 
 def performHotSpot(adata, sliceId):
     adata=adata[adata.obs['Batch']==sliceId]
@@ -69,7 +65,7 @@ def performHotSpot(adata, sliceId):
         Correlation theshold at which to stop assigning genes to modules
     ''' 
     
-    with open ("hs.txt", 'wb') as f:
+    with open ("hs.plk", 'wb') as f:
         pickle.dump(hs, f)
 
     zcmap = get_cmap(['#84c9b8', '#ffffff', '#e85588'])
@@ -81,7 +77,7 @@ def performHotSpot(adata, sliceId):
     hs.plot_local_correlations(vmin=-5, vmax=5)
     plt.savefig('{}_hotspot_correlations.tiff'.format(sliceId))
     
-    results = hs.results.join(hs.modules).sort_values('Z', ascending=False).to_csv('{}_result.txt'.format(sliceId))
+    hs.results.join(hs.modules).sort_values('Z', ascending=False).to_csv('{}_result.txt'.format(sliceId))
     
     module_scores=hs.calculate_module_scores()
     
@@ -103,7 +99,7 @@ def performHotSpot(adata, sliceId):
         sc.pl.spatial(adata, color=module_cols, frameon=False, vmin="p0", vmax="p99", spot_size=30)
     plt.savefig('{}_hotspot_moudle.tiff'.format(sliceId))
 
-adata=sc.read("/dellfsqd2/ST_OCEAN/USER/wangrui21/04.project/01.styela_clava/03.hotspot/01.all_slide/Styela_clava.h5ad")
+adata=sc.read("Styela_clava.stereo.h5ad")
 
 sliceList=['C3-2']
 

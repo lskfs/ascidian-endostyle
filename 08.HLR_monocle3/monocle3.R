@@ -7,22 +7,13 @@ library(SeuratDisk)
 library(SeuratWrappers)
 library(RColorBrewer)
 
-parser = argparse::ArgumentParser(description = 'Script for converting Stereo-seq matrix to seurat format')
-parser$add_argument('-i', '--input', dest = 'input', help = 'input h5seurat filename')
-parser$add_argument('-m', '--meta', dest = 'meta', help = 'meta filename')
-parser$add_argument('-r', '--root', dest = 'root', help = 'root celltype')
-parser$add_argument('-s', '--samples', dest = 'sample', help = 'sample ID, will be used as output prefix and seurat object ident')
-parser$add_argument('-o', '--out', dest = 'outdir', help = 'directory where to save the output files, all output files will be indexed by sample ID')
-opts = parser$parse_args()
-
 if (!file.exists('sinus_selectted.rds')){
-    obj <- readRDS('/dellfsqd2/ST_OCEAN/USER/hankai/Project/07.Styela_clava/17.downstream/00.data/Styela_clava.anno.rds')
+    obj <- readRDS('../data/Styela_clava.anno.rds')
     DefaultAssay(obj) <- 'RNA'
     Idents(obj) <- 'short_inte_anno'
 
-    selectted_cells <- read.csv('../selectted_cells.obs.txt', sep='\t', header=T)
+    selectted_cells <- read.csv('./selectted_cells.obs.txt', sep='\t', header=T)
     obj <- subset(obj, cells = rownames(selectted_cells))
-    #obj <- subset(obj, subset = Batch %in% c('sc1', 'sc2', 'sc3'))
     all.cells <- colnames(obj)
 
     obj.list <- SplitObject(obj, split.by = 'Batch')
@@ -33,44 +24,15 @@ if (!file.exists('sinus_selectted.rds')){
     })
 
     features <- SelectIntegrationFeatures(object.list = obj.list, nfeatures = 2000)
-    #obj.anchors <- FindIntegrationAnchors(object.list = obj.list, dims = 1:15, 
-    #                                      anchor.features = features)
-    #obj <- IntegrateData(anchorset = obj.anchors, dims = 1:15) 
     obj.list <- PrepSCTIntegration(object.list = obj.list, anchor.features = features)
     obj.anchors <- FindIntegrationAnchors(object.list = obj.list, dims = 1:30, normalization.method = "SCT", 
                                           anchor.features = features)
     obj <- IntegrateData(anchorset = obj.anchors, dims = 1:30, normalization.method = "SCT")
     DefaultAssay(obj) <- "integrated"
 
-    #obj <- ScaleData(obj)
     obj <- RunPCA(obj, npcs = 30)
     obj <- FindNeighbors(obj, dims = 1:30)
-    #obj <- RunUMAP(obj, dims = 1:10, min.dist = 0.01)
     obj <- RunUMAP(obj, dims = 1:30)
-
-    .f <- function(){
-    data <- obj@assays$RNA@counts
-    cds <- new_cell_data_set(as(data, 'sparseMatrix'),
-                         cell_metadata = obj@meta.data, 
-                         gene_metadata = data.frame(gene_short_name = row.names(data), 
-                                                    row.names = row.names(data)
-                                                    )
-                         )
-    obj <- FindVariableFeatures(obj, nfeatures=2000)
-    hvg <- VariableFeatures(obj)
-    cds <- preprocess_cds(cds, num_dim = 10, use_genes = hvg)
-
-    cds <- align_cds(cds, alignment_group = 'timepoint', alignment_k = 100)
-    cds <- reduce_dimension(cds, preprocess_method = 'PCA', reduction_method = 'UMAP', 
-                        umap.min_dist=0.005, umap.n_neighbors=100) #, spread=0.1)
-    cds <- cluster_cells(cds)
-    cds <- learn_graph(cds, use_partition = FALSE)
-    }
-
-    #obj <- SCTransform(obj, assay = 'RNA', verbose = FALSE, variable.features.n = 1000) #, vars.to.regress = 'cell_number')
-    #obj <- RunPCA(obj, verbose = FALSE, npcs = 8)
-    #obj <- RunUMAP(obj, dims = 1:8, verbose = FALSE, min.dist = 0.01)
-    #obj <- FindNeighbors(obj, dims = 1:8, verbose = FALSE)
 
     cds <- as.cell_data_set(obj)
     cds <- cluster_cells(cds = cds, reduction_method = 'UMAP')
@@ -125,9 +87,8 @@ if (!file.exists('sinus_selectted.rds')){
         root_pr_nodes
 
     }
-    #cds <- order_cells(cds, root_pr_nodes = get_earliest_principal_node(cds, time_bin = opts$root), reduction_method = 'UMAP')
-    #stem.cells <- scan('../anno_stem_cell_in_stereo/stemcell.index.txt', what = character())
-    stem.cells <- read.table('../anno_stem_cell_in_stereo/stemcell.index.txt', sep='\t', header=F)
+
+    stem.cells <- read.table('./stemcell.index.txt', sep='\t', header=F)
     colnames(stem.cells) <- 'cells'
     stem.cells <- subset(stem.cells, subset = cells %in% all.cells)
     cds <- order_cells(cds, reduction_method = 'UMAP', root_cells = stem.cells$cells)
@@ -146,8 +107,7 @@ if (!file.exists('sinus_selectted.rds')){
     rowData(cds)$gene_name <- rownames(cds)
     rowData(cds)$gene_short_name <- rowData(cds)$gene_name
 
-    cds <- cluster_cells(cds, k = 15) # hankai cluster 3
-    #cds <- cluster_cells(cds, k = 11) # hankai cluster 4
+    cds <- cluster_cells(cds, k = 15)
     cds$clusters <- clusters(cds)
     cds$partitions <- partitions(cds, reduction_method='UMAP')
     p3 <- plot_cells(cds, color_cells_by = 'clusters', 

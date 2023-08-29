@@ -2,12 +2,10 @@ import pandas as pd
 import anndata
 import cell2cell as c2c
 
-adata = anndata.read('/dellfsqd2/ST_OCEAN/USER/hankai/Project/07.Styela_clava/17.downstream/05.cell2cell.v3/Styela_clava.renamed_by_human.h5ad')
+adata = anndata.read('./Styela_clava.renamed_by_human.h5ad')
 colors = dict(adata.obs[['short_inte_anno.202302', 'Color']].drop_duplicates().to_dict('tight')['data'])
 
-lr_pairs = pd.read_csv('../00.data/Human-2020-Jin-LR-pairs.csv')
-#lr_pairs = pd.read_csv('/dellfsqd2/ST_OCEAN/USER/hankai/software/SpatialTranscript/cellchat/CellChatDB.human.interaction.txt', 
-#        sep='\t', header=0)
+lr_pairs = pd.read_csv('./Human-2020-Jin-LR-pairs.csv')
 lr_pairs = lr_pairs.astype(str)
 meta = adata.obs.copy()
 
@@ -47,11 +45,6 @@ group_meta = pd.DataFrame(columns=['Celltype', 'Group'])
 group_meta['Celltype'] = meta['short_inte_anno.202302'].unique().tolist()
 group_meta['Group'] = group_meta['Celltype']
 
-#colors = c2c.plotting.get_colors_from_labels(
-#        labels=group_meta['Group'].unique().tolist(),
-#        cmap='Spectral'
-#        )
-
 interaction_clustermap = c2c.plotting.clustermap_ccc(
         interactions,
         metric='jaccard',
@@ -79,20 +72,6 @@ l1 = c2c.plotting.generate_legend(
         )
 interaction_clustermap.savefig('haircell/clustermap.png')
 
-#sender_cells = list(adata.obs['short_inte_anno.202302'].unique())
-#receiver_cells = sender_cells[:]
-#sender_cells = ['TLC', 'FC', 'CSC', 'NCSC', 'CPC', 'CLC']
-#receiver_cells = ['TLC', 'FC', 'CSC', 'NCSC', 'CPC', 'CLC']
-#sender_cells = ['HC', 'CSC', 'P+DC', 'P-DC', 'FC', 'AE', 'TLBC', 'TLC']
-#receiver_cells = ['HC', 'CSC', 'P+DC', 'P-DC', 'FC', 'AE', 'TLBC', 'TLC']
-
-#V3
-#sender_cells = ['HC', 'IRFC']
-#receiver_cells = ['HC', 'IRFC']
-#sender_cells = ['HC', 'IRFC', 'P+SC', 'P-SC', 'FC', 'AE', 'CE', 'TLC']
-#receiver_cells = ['HC', 'IRFC']
-#sender_cells = ['HC', 'IRFC', 'P+SC', 'P-SC', 'FC', 'AE', 'CE', 'TLC']
-#receiver_cells = ['HC', 'IRFC', 'P+SC', 'P-SC', 'FC', 'AE', 'CE', 'TLC']
 sender_cells = ['HC', 'IRFC', 'P+SC', 'P-SC']
 receiver_cells = ['HC', 'IRFC', 'P+SC', 'P-SC']
 
@@ -117,10 +96,10 @@ c2c.plotting.circos_plot(
         legend=True,
         )
 
-import sys
-sys.path.append('/dellfsqd2/ST_OCEAN/USER/hankai/Project/10.smed/code/site-packages')
-from WBRtools import get_cmap
-cmap = get_cmap(['#0a40a3', '#ffffff', '#8d033c'])
+
+from matplotlib.colors import LinearSegmentedColormap
+cmap = LinearSegmentedColormap.from_list('', ['#0a40a3', '#ffffff', '#8d033c'])
+
 fig = c2c.plotting.dot_plot(
         interactions,
         evaluation='communication',
@@ -130,7 +109,7 @@ fig = c2c.plotting.dot_plot(
         senders=sender_cells,
         receivers=receiver_cells
         )
-fig.savefig('haircell/dot_plot.pdf')
+fig.savefig('./dot_plot.pdf')
 
 cm = c2c.plotting.clustermap_cci(
         interactions,
@@ -152,7 +131,7 @@ l1 = c2c.plotting.generate_legend(
         title='Groups',
         fontsize=14,
         )
-cm.savefig('haircell/clustermap_cci.png')
+cm.savefig('./clustermap_cci.png')
 
 fig = c2c.plotting.dot_plot(
         interactions,
@@ -161,7 +140,7 @@ fig = c2c.plotting.dot_plot(
         figsize=(16, 9),
         cmap='Blues',
         )
-fig.savefig('haircell/significance_dot_plot.png')
+fig.savefig('./significance_dot_plot.png')
 
 
 
