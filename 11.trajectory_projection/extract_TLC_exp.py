@@ -7,7 +7,7 @@ trajectory_genes = pd.read_csv('styela_gene_trajectory_class.txt', sep='\t', hea
 trajectory_genes = trajectory_genes[['class', 'styela']].drop_duplicates()
 genes = trajectory_genes['styela'].unique()
 
-adata = anndata.read('Styela_clava.anno.h5ad')
+adata = anndata.read('../data/Styela_clava.anno.h5ad')
 adata.X = adata.layers['data']
 adata = adata[adata.obs['short_inte_anno'] == 'TLC']
 

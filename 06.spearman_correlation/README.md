@@ -45,7 +45,7 @@ python3 correlation_estimation.py \
     -type single \
     -figname corr.single
 ```
-![Alt text](corr_single.png)
+![Alt text](./img/corr_single.png)
 - for one-to-many version correlation
 ```shell
 python3 correlation_estimation.py \
@@ -54,4 +54,4 @@ python3 correlation_estimation.py \
     -strategy mean \
     -figname corr.multi 
 ```
-![Alt text](corr_multi.png)
+![Alt text](./img/corr_multi.png)

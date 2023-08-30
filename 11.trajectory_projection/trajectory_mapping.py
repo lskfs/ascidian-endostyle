@@ -43,8 +43,6 @@ for attr in ['cell', 'gene']:
     del colors
 exp.to_csv('exp.trajectory_ordered.txt', sep='\t', header=True, index=False)
 
-import sys
-sys.exit()
 def plot_cells(exp, color=None, outfile=None, cmap='plasma'):
     from matplotlib.gridspec import GridSpec
     fig = plt.figure(tight_layout=True, figsize=(12, 5), dpi=600)

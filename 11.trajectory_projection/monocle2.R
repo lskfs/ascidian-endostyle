@@ -5,17 +5,7 @@ library(dplyr)
 library(Seurat)
 library(RColorBrewer)
 
-parser = argparse::ArgumentParser(description = 'Script for converting Stereo-seq matrix to seurat format')
-parser$add_argument('-i', '--input', dest = 'input', help = 'input h5seurat filename')
-parser$add_argument('-m', '--meta', dest = 'meta', help = 'meta filename')
-parser$add_argument('-r', '--root', dest = 'root', help = 'root celltype')
-parser$add_argument('-s', '--samples', dest = 'sample', help = 'sample ID, will be used as output prefix and seurat object ident')
-parser$add_argument('-o', '--out', dest = 'outdir', help = 'directory where to save the output files, all output files will be indexed by sample ID')
-
-opts = parser$parse_args()
-
-obj <- readRDS('../sct.integrated.rds')
-obj@meta.data[obj@meta.data$Tissue == 'Thyriod', ]$Tissue <- 'Thyroid'
+obj <- readRDS('../10.cross-species_comparison/zebrafish.final.rds')
 obj@meta.data <- obj@meta.data[, which(colnames(obj@meta.data) %in% c('CellType', 'Tissue', 'paper', 'seurat_clusters'))]
 obj <- subset(obj, subset = Tissue %in% c('Pharyngeal endoderm') | (Tissue %in% 'Thyroid' & CellType == 'Thyrocyte'))
 
@@ -40,9 +30,6 @@ cds <- estimateSizeFactors(cds)
 cds <- estimateDispersions(cds)
 
 # use cluster DEGs as ordering genes
-#diff_test_res <- differentialGeneTest(cds, fullModelFormulaStr = "~Tissue")
-#ordering_genes <- row.names(subset(diff_test_res, qval < 0.01))
-#ordering_genes <- row.names(diff_test_res)[order(diff_test_res$qval)][1:2000]
 disp_table <- dispersionTable(cds)
 disp_table <- subset(disp_table, mean_expression >= 0.3)
 ordering_genes <- disp_table$gene_id
@@ -88,13 +75,12 @@ plot_cell_trajectory(cds, color_by = "Pseudotime", cell_size = 2) + scale_color_
 ggsave('pseudotime.png', width=15, height=15)
 ggsave('pseudotime.pdf', width=15, height=15)
 
-saveRDS(cds, file = paste0(opts$outdir, '/monocle_cds.rds'))
+saveRDS(cds, file = './monocle_cds.rds')
 
-data.dir <- '/dellfsqd2/ST_OCEAN/USER/hankai/Project/07.Styela_clava/17.downstream/09.SAMap/00.celltypeDGE_newclass/01.celltypeDGE'
-throid.markers <- read.csv(paste0(data.dir, '/Thyroid.txt'), sep='\t', header=T)
+throid.markers <- read.csv('./data/TLC.DEGs.txt', sep='\t', header=T)
 throid.markers <- subset(throid.markers, subset = (avg_log2FC > 0) & (p_val < 0.05))
 
-endoderm.markers <- read.csv(paste0(data.dir, '/Pharyngeal_endoderm.txt'), sep='\t', header=T)
+endoderm.markers <- read.csv('./data/Pharyngeal_endoderm.DEGs.txt', sep='\t', header=T)
 endoderm.markers <- subset(endoderm.markers, subset = (avg_log2FC > 0) & (p_val < 0.05))
 
 markers <- c(rownames(endoderm.markers), rownames(throid.markers))
@@ -120,6 +106,7 @@ pheatmap(log10(genSmoothCurves_mat[b$tree_row$order,]+1),
          breaks = bks)
 dev.off()
 
-
-
-
+pt.matrix <- log10(genSmoothCurves_mat+1)
+pt.matrix <- t(scale(t(pt.matrix)))
+pt.matrix <- pt.matrix[complete.cases(pt.matrix), ]
+write.table(pt.matrix, file = 'genSmoothCurves_mat.scaled.txt', sep='\t', quote=F)
