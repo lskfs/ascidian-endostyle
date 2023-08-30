@@ -1,4 +1,5 @@
 
+# How to run
 
 ### step 1. reciprocal blast using S. clava and zebrafish protein sequences
 
@@ -46,6 +47,7 @@ python3 correlation_estimation.py \
     -figname corr.single
 ```
 ![Alt text](./img/corr_single.png)
+
 - for one-to-many version correlation
 ```shell
 python3 correlation_estimation.py \
